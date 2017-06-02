@@ -67,11 +67,106 @@ for (x,y) in screen
 			sphere->getReflection()*refl[2] +
 			sphere->getTransmission()*refr[2];
 ```    
-### 古罗着色 冯氏着色 Blinn冯氏着色：
-* 古罗着色：又叫做逐顶点着色，故名思意跟顶点有关，也就是在我们的顶点着色器中根据每个顶点上的入射向量L、法向量N、观察向量V等直接计算出每个顶点该有的颜色，然后传递给片段着色器进行插值着色，可想而知由于顶点是离散的，片段是连续的，所以引起着色效果的不光滑很容易理解。<br> 
-* 冯氏着色：与古罗着色对应即是在片段着色器中，对法向量与坐标进行插值，然后再通过冯氏反射模型计算出每个像素点的颜色值，从而使离散的顶点计算出来的离散的颜色变得连续而光滑。我们直接把环境光、漫反射光、镜面反射光的计算拿到片段着色器中计算即可完成修改，那么法向量、观察向量、入射向量同理需要传递给片段着色器，而不再是直接传递一个颜色。<br> 
-* Blinn冯氏着色：类似于与冯氏着色模型，只是Blinn-Phong模型镜面光的计算，采用了半角向量，这个向量是光照向量L和观察向量V的取中向量H，通过计算这个取中向量H与法向量N的夹角来得到镜面发射光强度，如下图所示：<br> 
-![](https://github.com/Chicharito999/ImageCache/raw/master/image/图片28.png)<br>
+### 交点计算：
+* Ray-sphere：寻找ray-sphere交点，利用公式求解<br> 
+```cpp
+	//for sphere：寻找ray-sphere交点，利用公式求解
+	for (i = 0; i<2; i++) {
+		double a, b, c, t1, t2;
+		point *center = new point(spheres[i]->center()->x(), spheres[i]->center()->y(), spheres[i]->center()->z());
+		a = dx*dx + dy*dy + dz*dz;
+		b = 2.0*(dx*(p0->x() - center->x()) + dy*(p0->y() - center->y()) + dz*(p0->z() - center->z()));
+		c = (p0->x() - center->x())*(p0->x() - center->x()) + (p0->y() - center->y())*(p0->y() - center->y()) + (p0->z() - center->z())*(p0->z() - center->z()) - (spheres[i]->radius())*(spheres[i]->radius());
+		t[i] = 1000;
+
+		delete center;
+
+		if (((b*b) - (4.0*a*c)) >= 0) {
+			t1 = (-b + sqrt(b*b - 4.0*a*c)) / (2.0*a);
+			t2 = (-b - sqrt(b*b - 4.0*a*c)) / (2.0*a);
+			double x, y, z;
+			if (t1 <= t2) {
+				t[i] = t1;
+			}
+			else {
+				t[i] = t2;
+			}
+		}
+	}
+``` 
+* Ray-cylinder：寻找ray-cylinder交点，利用公式求解<br> 
+```cpp
+	//for cylinder：寻找ray-cylinder交点，利用公式求解
+	for (i = 0; i<1; i++) {
+
+		double a, b, c, t1, t2;
+
+		point *center = new point(olist[i]->center()->x(), olist[i]->center()->y(), olist[i]->center()->z());
+		a = dx*dx + dz*dz;
+		b = 2.0*(dx*(p0->x() - center->x()) + dz*(p0->z() - center->z()));
+		c = (p0->x() - center->x())*(p0->x() - center->x()) + (p0->z() - center->z())*(p0->z() - center->z()) - (olist[i]->radius())*(olist[i]->radius());
+
+		delete center;
+
+		if (((b*b) - (4.0*a*c)) >= 0) {
+			t1 = (-b + sqrt(b*b - 4.0*a*c)) / (2.0*a);
+			t2 = (-b - sqrt(b*b - 4.0*a*c)) / (2.0*a);
+			double x, y, z;
+			if (t1 <= t2) {
+				t[2 + i] = t1;
+				tf = t1;
+				tg = t2;
+			}
+			else {
+				t[2 + i] = t2;
+				tf = t2;
+				tg = t1;
+			}
+
+			//区分处理圆柱体的上表面和下表面
+			if (((p0->y() + t[2 + i] * p1->y()) > (cyl->center()->y() + cyl->height())) && (((p0->y() + tg*p1->y()) > (cyl->center()->y() + cyl->height()))))
+				t[2 + i] = -1;
+			else if (((p0->y() + t[2 + i] * p1->y()) >= (cyl->center()->y() + cyl->height())) && (((p0->y() + tg*p1->y()) <= (cyl->center()->y() + cyl->height()))))
+				t[2 + i] = ((cyl->center()->y() + cyl->height()) - (p0->y())) / (p1->y());
+
+			if (((p0->y() + t[2 + i] * p1->y()) < (cyl->center()->y())) && (((p0->y() + tg*p1->y()) < (cyl->center()->y()))))
+				t[2 + i] = -1;
+			else if (((p0->y() + t[2 + i] * p1->y()) <= (cyl->center()->y())) && (((p0->y() + tg*p1->y()) >= (cyl->center()->y()))))
+				t[2 + i] = ((cyl->center()->y()) - (p0->y())) / (p1->y());
+		}
+	}
+``` 
+* Ray-board：寻找ray-board交点，利用公式求解<br> 
+```cpp
+	//for board：寻找ray-board交点，利用公式求解
+	for (int i = 0; i<2; i++) {
+		double a, b, c, d, intersect;
+	
+		point *ab = new point(blist[i]->point2()->x() - blist[i]->point1()->x(), blist[i]->point2()->y() - blist[i]->point1()->y(), blist[i]->point2()->z() - blist[i]->point1()->z());
+		point *ad = new point(blist[i]->point3()->x() - blist[i]->point2()->x(), blist[i]->point3()->y() - blist[i]->point2()->y(), blist[i]->point3()->z() - blist[i]->point2()->z());
+		a = ab->y()*ad->z() - ab->z()*ad->y();
+		b = ab->z()*ad->x() - ab->x()*ad->z();
+		c = ab->x()*ad->y() - ab->y()*ad->x();
+		d = -(blist[i]->point3()->x()*a + blist[i]->point3()->y()*b + blist[i]->point3()->z()*c);
+
+		
+		intersect = -((a*p0->x() + b*p0->y() + c*p0->z() + d) / (a*dx + b*dy + c*dz));
+
+		point *p = new point(p0->x() + intersect*dx, p0->y() + intersect*dy, p0->z() + intersect*dz);
+
+		delete ab, ad;
+		t[i + 2] = 1000;
+		//核实可见性并且更新交点坐标
+		if (visible(p, blist[i]->point1(), blist[i]->point2(), blist[i]->point3())) {
+			if (visible(p, blist[i]->point2(), blist[i]->point1(), blist[i]->point3())) {
+				//if (visible(p, blist[i]->point3(), blist[i]->point1(), blist[i]->point2())) {
+					t[i + 2] = intersect;
+				//}
+			}
+		}
+		delete p;
+	}
+``` 
 ## Code
 * 光照计算
 ```cg
