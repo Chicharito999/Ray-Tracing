@@ -3,10 +3,7 @@
 __________________________________________________________________________________________
 Author:赵明福                                        Student ID：201400301087                            E-mail:1109646702@qq.com<br>
 ## Assignment
-Here comes the new project.This project may be a little difficult.You have 2 choices: <br>
-1:Based on last project:Let's your sitck man move<br>
-2:Create your own scene,you can place anything in it<br>
-Choose one and use at least two different method such as Phong model, Gouraud model to complete this project.<br>
+Realize your ray-tracing algorithm and compare with the effect of opengl.<br>
 ![](https://github.com/Chicharito999/ImageCache/raw/master/image/图片24.png) 
 ![](https://github.com/Chicharito999/ImageCache/raw/master/image/图片25.png)
 ## Analysis
