@@ -14,7 +14,7 @@ Realize your ray-tracing algorithm and compare with the effect of opengl.<br>
 　　　　　　![](https://github.com/Chicharito999/ImageCache/raw/master/image/图片58.png)<br> 
 　　在上图中，起点代表摄像机，矩形平面代表屏幕，我们以摄像机为起点向屏幕上的每个像素点发射射线，找到射线与空间中物体的第一个相交点，计算该点的颜色值，最后将该颜色值渲染到屏幕上。<br>
 ```cpp
-伪代码:
+逐像素渲染伪代码:
 for (x,y) in screen
   {
      建立一个由摄像机穿过这个像素点的射线;
@@ -24,7 +24,7 @@ for (x,y) in screen
   }
 ```  
 ```cpp
-代码:
+逐像素渲染代码:
 	point *p0 = new point(0, 0, 0);
 	for (int y = 0; y<HEIGHT; y++) {
 		for (int x = 0; x<WIDTH; x++) {
@@ -46,6 +46,27 @@ for (x,y) in screen
 　　　　　　　　![](https://github.com/Chicharito999/ImageCache/raw/master/image/图片60.png)<br>
 * 折射光：当物体表面具有折射性质并且部分透明，部分光线将会进入物体继续传播；同时根据物体的透明度会显示部分折射光颜色<br>
 　　　　　　　　![](https://github.com/Chicharito999/ImageCache/raw/master/image/图片61.png)<br>
+```cpp
+颜色值计算代码:根据表面性质(反射率、折射率)，和不同类型光线计算得出的颜色值，来确定交点的颜色值，即当前像素点的颜色值。
+		//计算该像素点的RGB颜色
+		red = ambientlight[0] * sphere->getIa(0) +
+			sphere->getId(0)*lightSource->red()*nl +
+			sphere->getIr(0)*lightSource->red()*specular +
+			sphere->getReflection()*refl[0] +
+			sphere->getTransmission()*refr[0];
+
+		green = ambientlight[1] * sphere->getIa(1) +
+			sphere->getId(1)*lightSource->green()*nl +
+			sphere->getIr(1)*lightSource->green()*specular +
+			sphere->getReflection()*refl[1] +
+			sphere->getTransmission()*refr[1];
+
+		blue = ambientlight[2] * sphere->getIa(2) +
+			sphere->getId(2)*lightSource->blue()*nl +
+			sphere->getIr(2)*lightSource->blue()*specular +
+			sphere->getReflection()*refl[2] +
+			sphere->getTransmission()*refr[2];
+```    
 ### 古罗着色 冯氏着色 Blinn冯氏着色：
 * 古罗着色：又叫做逐顶点着色，故名思意跟顶点有关，也就是在我们的顶点着色器中根据每个顶点上的入射向量L、法向量N、观察向量V等直接计算出每个顶点该有的颜色，然后传递给片段着色器进行插值着色，可想而知由于顶点是离散的，片段是连续的，所以引起着色效果的不光滑很容易理解。<br> 
 * 冯氏着色：与古罗着色对应即是在片段着色器中，对法向量与坐标进行插值，然后再通过冯氏反射模型计算出每个像素点的颜色值，从而使离散的顶点计算出来的离散的颜色变得连续而光滑。我们直接把环境光、漫反射光、镜面反射光的计算拿到片段着色器中计算即可完成修改，那么法向量、观察向量、入射向量同理需要传递给片段着色器，而不再是直接传递一个颜色。<br> 
