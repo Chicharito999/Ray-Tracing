@@ -9,9 +9,9 @@ Realize your ray-tracing algorithm and compare with the effect of opengl.<br>
 ## Analysis
 ### 反向光线追踪：
 　　现实生活中，我们看到的物体的色彩是由太阳发出的光线，经过物体的反射等最终到达人的眼睛。<br>
-![](https://github.com/Chicharito999/ImageCache/raw/master/image/图片57.png)<br>
+　　　　　　![](https://github.com/Chicharito999/ImageCache/raw/master/image/图片57.png)<br>
 　　在上图中，没有到达摄像机的射线都没有画出来，在现实生活中，没有进入我们眼睛的光线也不会被看到。所以我们不用以光源为起点追踪每一条光线，因为大多数光线最终都不会到达观察点，相反我们可以从摄像机的每个像素发出一条射线，来追踪他们到达的地方。<br>
-![](https://github.com/Chicharito999/ImageCache/raw/master/image/图片58.png)<br> 
+　　　　　　![](https://github.com/Chicharito999/ImageCache/raw/master/image/图片58.png)<br> 
 　　在上图中，起点代表摄像机，矩形平面代表屏幕，我们以摄像机为起点向屏幕上的每个像素点发射射线，找到射线与空间中物体的第一个相交点，计算该点的颜色值，最后将该颜色值渲染到屏幕上。<br>
 ```cg
 伪代码:
