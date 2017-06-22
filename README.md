@@ -1,5 +1,5 @@
 # Ray-Tracing
-:sunny:Realize at least two different method such as Phong model, Gouraud model<br>
+:sunny:Realize your ray-tracing algorithm and compare with the effect of opengl.<br>
 __________________________________________________________________________________________
 Author:赵明福                                        Student ID：201400301087                            E-mail:1109646702@qq.com<br>
 ## Assignment
